@@ -1,0 +1,40 @@
+function [EOM]=generic_lagrange(q,dq,T,V,Q)
+%GENERIC_LAGRANGE
+%    returns the EOM (equations of motion) for the given system
+%    q=generalized coordinates
+%    dq=diff(generalized coordinates)
+%    T=kinetic energy
+%    V=potential energy
+%    Q=generalized forces
+
+%%
+EOM.q=q;
+EOM.dq=dq;
+EOM.T=T;
+EOM.V=V;
+%% Mass Matrix
+M  = sym('M', length(EOM.q));     
+M=jacobian(jacobian(EOM.T,EOM.dq).',EOM.dq);
+M = simplify(M);
+EOM.M=M;
+%% Coriolis and Centripetal Terms
+C  = sym(zeros(length(EOM.q)));     
+for i = 1:length(EOM.q(:))
+    for j = 1:length(EOM.q(:))
+        for k = 1:length(EOM.q(:))
+            C(i,j) = C(i,j)+ 0.5*(diff(EOM.M(i,j),EOM.q(k)) + diff(EOM.M(i,k),EOM.q(j)) - diff(EOM.M(j,k),EOM.q(i)))*EOM.dq(k);
+        end
+    end
+end
+C = simplify(C);
+EOM.C=C;
+%% Gravitational Terms
+G  = sym('G',[length(EOM.q) 1]);  
+for i = 1:length(EOM.q(:))
+    G(i) = diff(EOM.V,EOM.q(i));
+end
+G = simplify(G);
+EOM.G=G;
+%% Calc the EOM
+ddq  = simplify(inv(M)*(-C*dq -G +Q));
+EOM.ddq=ddq;
