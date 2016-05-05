@@ -1,0 +1,9 @@
+path='results/';
+name='aerial_stance_pogo_';
+opt_num=0;
+numText=sprintf('%.5d',opt_num);
+while(exist([path name numText '.mat'],'file')==2)
+    opt_num = opt_num+1;
+    numText = sprintf('%.5d',opt_num);
+end
+filename = [path name numText];
